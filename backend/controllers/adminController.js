@@ -3,7 +3,7 @@ const asyncHandler = require('../utils/asyncHandler');
 
 function buildAdminPhotoUrl(req) {
   if (!req.file) return '';
-  return `/uploads/admins/${req.file.filename}`;
+  return `/api/uploads/admins/${req.file.filename}`;
 }
 
 const getMe = asyncHandler(async (req, res) => {

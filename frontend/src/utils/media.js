@@ -15,6 +15,16 @@ function toOriginSafe(url) {
   }
 }
 
+function normalizeUploadsPath(pathname) {
+  const clean = String(pathname || '').replace(/\\/g, '/')
+  const lower = clean.toLowerCase()
+
+  if (lower.startsWith('/api/uploads/')) return clean
+  if (lower.startsWith('/uploads/')) return `/api${clean}`
+  if (lower.startsWith('uploads/')) return `/api/${clean}`
+  return clean
+}
+
 function escapeXml(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -60,11 +70,13 @@ export function resolveMediaUrl(value) {
 
     const uploadsIndex = parsed.pathname.toLowerCase().indexOf('/uploads/')
     if (uploadsIndex >= 0) {
+      const normalizedPathname = normalizeUploadsPath(parsed.pathname)
       const differentHost = parsed.host.toLowerCase() !== apiParsed.host.toLowerCase()
       const shouldRewrite = differentHost && isLocalHost(parsed.hostname)
       if (shouldRewrite) {
-        return `${apiParsed.origin}${parsed.pathname}${parsed.search || ''}`
+        return `${apiParsed.origin}${normalizedPathname}${parsed.search || ''}`
       }
+      return `${parsed.origin}${normalizedPathname}${parsed.search || ''}`
     }
 
     return parsed.href
@@ -75,10 +87,13 @@ export function resolveMediaUrl(value) {
   const uploadsIndex = lower.indexOf('/uploads/')
 
   if (uploadsIndex >= 0) {
-    return `${API_ORIGIN}${normalized.slice(uploadsIndex)}`
+    return `${API_ORIGIN}${normalizeUploadsPath(normalized.slice(uploadsIndex))}`
+  }
+  if (lower.startsWith('/api/uploads/')) {
+    return `${API_ORIGIN}${normalized}`
   }
   if (lower.startsWith('uploads/')) {
-    return `${API_ORIGIN}/${normalized}`
+    return `${API_ORIGIN}${normalizeUploadsPath(normalized)}`
   }
   if (normalized.startsWith('/')) {
     return `${API_ORIGIN}${normalized}`

@@ -79,6 +79,7 @@ if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
 // Static uploads (local provider)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

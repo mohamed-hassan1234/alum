@@ -13,6 +13,8 @@ import { readFilenameFromHeaders, saveBlob } from '../../utils/download'
 import { initialsAvatar, resolveMediaUrl } from '../../utils/media'
 
 const PREFERENCES_KEY = 'ams_preferences'
+const MAX_PROFILE_UPLOAD_BYTES = 900 * 1024
+const MAX_PROFILE_IMAGE_DIMENSION = 1280
 
 function getInitialPrefs() {
   const raw = localStorage.getItem(PREFERENCES_KEY)
@@ -22,6 +24,87 @@ function getInitialPrefs() {
   } catch {
     return { compactTables: false, defaultStudentPageSize: 25 }
   }
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || ''))
+    reader.onerror = () => reject(new Error('Failed to read image file'))
+    reader.readAsDataURL(file)
+  })
+}
+
+function dataUrlToImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Invalid image file'))
+    img.src = dataUrl
+  })
+}
+
+function canvasToJpegBlob(canvas, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob)
+        else reject(new Error('Failed to process image'))
+      },
+      'image/jpeg',
+      quality
+    )
+  })
+}
+
+async function optimizeProfileImage(file) {
+  if (!(file instanceof File)) return file
+  if (!String(file.type || '').startsWith('image/')) {
+    throw new Error('Only image uploads are allowed')
+  }
+
+  const sourceDataUrl = await fileToDataUrl(file)
+  const image = await dataUrlToImage(sourceDataUrl)
+
+  const scale = Math.min(1, MAX_PROFILE_IMAGE_DIMENSION / Math.max(image.width, image.height))
+  const width = Math.max(1, Math.round(image.width * scale))
+  const height = Math.max(1, Math.round(image.height * scale))
+
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Unable to process image')
+  ctx.drawImage(image, 0, 0, width, height)
+
+  let quality = 0.9
+  let blob = await canvasToJpegBlob(canvas, quality)
+  while (blob.size > MAX_PROFILE_UPLOAD_BYTES && quality > 0.5) {
+    quality -= 0.1
+    blob = await canvasToJpegBlob(canvas, quality)
+  }
+
+  let currentWidth = width
+  let currentHeight = height
+  while (blob.size > MAX_PROFILE_UPLOAD_BYTES && Math.max(currentWidth, currentHeight) > 480) {
+    currentWidth = Math.max(480, Math.round(currentWidth * 0.85))
+    currentHeight = Math.max(480, Math.round(currentHeight * 0.85))
+    const nextCanvas = document.createElement('canvas')
+    nextCanvas.width = currentWidth
+    nextCanvas.height = currentHeight
+    const nextCtx = nextCanvas.getContext('2d')
+    if (!nextCtx) break
+    nextCtx.drawImage(canvas, 0, 0, currentWidth, currentHeight)
+    blob = await canvasToJpegBlob(nextCanvas, quality)
+    canvas.width = currentWidth
+    canvas.height = currentHeight
+    const overwriteCtx = canvas.getContext('2d')
+    if (!overwriteCtx) break
+    overwriteCtx.drawImage(nextCanvas, 0, 0)
+  }
+
+  const safeName = String(file.name || 'profile').replace(/\.[^.]+$/, '')
+  return new File([blob], `${safeName}.jpg`, { type: 'image/jpeg' })
 }
 
 export default function SettingsPage() {
@@ -40,6 +123,7 @@ export default function SettingsPage() {
   const [prefs, setPrefs] = useState(getInitialPrefs)
   const [editingProfile, setEditingProfile] = useState(false)
   const [editingPassword, setEditingPassword] = useState(false)
+  const [processingPhoto, setProcessingPhoto] = useState(false)
 
   useEffect(() => {
     setProfile({
@@ -121,7 +205,7 @@ export default function SettingsPage() {
     setEditingProfile(false)
   }
 
-  function handlePhotoSelect(file) {
+  async function handlePhotoSelect(file) {
     if (!file) {
       setProfile((prev) => ({
         ...prev,
@@ -131,18 +215,21 @@ export default function SettingsPage() {
       return
     }
 
-    // Set file immediately so Save always sends multipart payload.
-    setProfile((prev) => ({ ...prev, photo: file }))
-
-    const reader = new FileReader()
-    reader.onload = () => {
+    try {
+      setProcessingPhoto(true)
+      const optimizedFile = await optimizeProfileImage(file)
+      const preview = await fileToDataUrl(optimizedFile)
       setProfile((prev) => ({
         ...prev,
-        photo: file,
-        photoPreview: String(reader.result || ''),
+        photo: optimizedFile,
+        photoPreview: preview,
       }))
+    } catch (err) {
+      toast.error(err?.message || 'Failed to process selected image')
+      setProfile((prev) => ({ ...prev, photo: null }))
+    } finally {
+      setProcessingPhoto(false)
     }
-    reader.readAsDataURL(file)
   }
 
   function onSubmitProfile(e) {
@@ -245,11 +332,11 @@ export default function SettingsPage() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handlePhotoSelect(e.target.files?.[0] || null)}
+                  onChange={(e) => void handlePhotoSelect(e.target.files?.[0] || null)}
                   className="h-11 w-full rounded-2xl border border-black/10 bg-[rgb(var(--panel))]/95 px-3 py-2 text-sm text-[rgb(var(--text))] outline-none transition-all duration-200 focus:border-secondary/60 focus:ring-4 focus:ring-secondary/15 dark:border-white/15 dark:bg-[rgb(var(--panel))]/90"
                 />
                 <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">
-                  PNG/JPG image up to 5MB.
+                  PNG/JPG/WebP supported. Image is optimized automatically before upload.
                 </p>
                 <div className="mt-3 flex items-center gap-3">
                   <img
@@ -271,9 +358,13 @@ export default function SettingsPage() {
                 <Button type="button" variant="ghost" className="w-full sm:w-auto" onClick={resetProfileEditor}>
                   Cancel
                 </Button>
-                <Button type="submit" className="w-full sm:w-auto" disabled={profileMut.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  disabled={profileMut.isPending || processingPhoto}
+                >
                   <MaterialIcon name={profileMut.isPending ? 'sync' : 'save'} className={profileMut.isPending ? 'animate-spin' : undefined} />
-                  {profileMut.isPending ? 'Saving...' : 'Save Profile'}
+                  {processingPhoto ? 'Processing image...' : profileMut.isPending ? 'Saving...' : 'Save Profile'}
                 </Button>
               </div>
             </form>
