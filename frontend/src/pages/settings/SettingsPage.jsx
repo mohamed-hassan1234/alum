@@ -18,19 +18,8 @@ import {
   setCachedAdminPhoto,
 } from '../../utils/media'
 
-const PREFERENCES_KEY = 'ams_preferences'
 const MAX_PROFILE_UPLOAD_BYTES = 900 * 1024
 const MAX_PROFILE_IMAGE_DIMENSION = 1280
-
-function getInitialPrefs() {
-  const raw = localStorage.getItem(PREFERENCES_KEY)
-  if (!raw) return { compactTables: false, defaultStudentPageSize: 25 }
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return { compactTables: false, defaultStudentPageSize: 25 }
-  }
-}
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -126,7 +115,6 @@ export default function SettingsPage() {
     newPassword: '',
     confirmPassword: '',
   })
-  const [prefs, setPrefs] = useState(getInitialPrefs)
   const [editingProfile, setEditingProfile] = useState(false)
   const [editingPassword, setEditingPassword] = useState(false)
   const [processingPhoto, setProcessingPhoto] = useState(false)
@@ -190,11 +178,6 @@ export default function SettingsPage() {
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   })
-
-  function savePreferences() {
-    localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs))
-    toast.success('Preferences saved')
-  }
 
   async function downloadBackup() {
     try {
@@ -455,55 +438,19 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="p-4 sm:p-5">
-          <h3 className="font-display text-lg font-semibold">System Preferences</h3>
-          <div className="mt-4 space-y-4 text-sm">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={prefs.compactTables}
-                onChange={(e) => setPrefs((p) => ({ ...p, compactTables: e.target.checked }))}
-              />
-              Compact table rows
-            </label>
-            <label className="block">
-              <span className="mb-1 block font-semibold">Default student page size</span>
-              <select
-                value={prefs.defaultStudentPageSize}
-                onChange={(e) =>
-                  setPrefs((p) => ({ ...p, defaultStudentPageSize: Number(e.target.value) }))
-                }
-                className="h-11 w-full rounded-2xl border border-black/10 bg-[rgb(var(--panel))]/95 px-3 py-2 text-sm text-[rgb(var(--text))] outline-none transition-all duration-200 focus:border-secondary/60 focus:ring-4 focus:ring-secondary/15 dark:border-white/15 dark:bg-[rgb(var(--panel))]/90"
-              >
-                {[10, 25, 50, 100].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Button variant="secondary" className="w-full sm:w-auto" onClick={savePreferences}>
-              <MaterialIcon name="save" />
-              Save Preferences
-            </Button>
-          </div>
-        </Card>
-
-        <Card className="p-4 sm:p-5">
-          <h3 className="font-display text-lg font-semibold">Backup Data</h3>
-          <p className="mt-3 text-sm text-[rgb(var(--text-muted))]">
-            Download a complete JSON backup of admins, faculties, departments, classes, batches,
-            jobs, and active students.
-          </p>
-          <div className="mt-5">
-            <Button variant="secondary" className="w-full sm:w-auto" onClick={downloadBackup}>
-              <MaterialIcon name="download" />
-              Download Backup
-            </Button>
-          </div>
-        </Card>
-      </div>
+      <Card className="p-4 sm:p-5">
+        <h3 className="font-display text-lg font-semibold">Backup Data</h3>
+        <p className="mt-3 text-sm text-[rgb(var(--text-muted))]">
+          Download a complete JSON backup of admins, faculties, departments, classes, batches,
+          jobs, and active students.
+        </p>
+        <div className="mt-5">
+          <Button variant="secondary" className="w-full sm:w-auto" onClick={downloadBackup}>
+            <MaterialIcon name="download" />
+            Download Backup
+          </Button>
+        </div>
+      </Card>
     </div>
   )
 }
