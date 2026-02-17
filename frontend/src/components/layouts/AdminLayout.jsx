@@ -113,6 +113,11 @@ export default function AdminLayout() {
   const fallbackAvatar = initialsAvatar(adminName)
   const adminAvatar = resolveMediaUrl(admin?.photoImage) || fallbackAvatar
 
+  function handleAvatarError(e) {
+    e.currentTarget.onerror = null
+    e.currentTarget.src = fallbackAvatar
+  }
+
   useEffect(() => {
     setMobileOpen(false)
   }, [location.pathname])
@@ -155,13 +160,10 @@ export default function AdminLayout() {
             </div>
             <div className="flex items-center gap-3">
               <img
+                key={adminAvatar}
                 src={adminAvatar}
                 alt={adminName}
-                onError={(e) => {
-                  if (e.currentTarget.dataset.fallbackApplied === '1') return
-                  e.currentTarget.dataset.fallbackApplied = '1'
-                  e.currentTarget.src = fallbackAvatar
-                }}
+                onError={handleAvatarError}
                 className="h-12 w-12 rounded-full border border-black/10 bg-white object-cover object-top dark:border-white/15"
               />
               <span className="hidden text-sm font-semibold text-[rgb(var(--text-muted))] sm:inline">

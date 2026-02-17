@@ -144,14 +144,15 @@ export default function SettingsPage() {
       } catch {
         // Keep payload data if /auth/me refresh fails.
       }
+      const uploadedPreview = profile.photo ? profile.photoPreview : ''
 
       const mergedAdmin = {
         _id: admin?._id,
         name: nextAdmin.name || profile.name.trim(),
         email: nextAdmin.email || profile.email.trim(),
         photoImage:
+          uploadedPreview ||
           resolveMediaUrl(nextAdmin.photoImage) ||
-          profile.photoPreview ||
           resolveMediaUrl(admin?.photoImage) ||
           '',
       }
@@ -273,6 +274,11 @@ export default function SettingsPage() {
   const fallbackAvatar = initialsAvatar(admin?.name || 'Admin')
   const profileAvatar = resolveMediaUrl(profile.photoPreview || admin?.photoImage) || fallbackAvatar
 
+  function handleAvatarError(e) {
+    e.currentTarget.onerror = null
+    e.currentTarget.src = fallbackAvatar
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -285,13 +291,10 @@ export default function SettingsPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               <img
+                key={profileAvatar}
                 src={profileAvatar}
                 alt={admin?.name || 'Admin profile'}
-                onError={(e) => {
-                  if (e.currentTarget.dataset.fallbackApplied === '1') return
-                  e.currentTarget.dataset.fallbackApplied = '1'
-                  e.currentTarget.src = fallbackAvatar
-                }}
+                onError={handleAvatarError}
                 className="h-20 w-20 shrink-0 rounded-full border border-black/10 bg-white object-cover object-top dark:border-white/15"
               />
               <div className="min-w-0">
@@ -340,13 +343,10 @@ export default function SettingsPage() {
                 </p>
                 <div className="mt-3 flex items-center gap-3">
                   <img
+                    key={`${profileAvatar}-preview`}
                     src={profileAvatar}
                     alt="Profile preview"
-                    onError={(e) => {
-                      if (e.currentTarget.dataset.fallbackApplied === '1') return
-                      e.currentTarget.dataset.fallbackApplied = '1'
-                      e.currentTarget.src = fallbackAvatar
-                    }}
+                    onError={handleAvatarError}
                     className="h-16 w-16 rounded-full border border-black/10 bg-white object-cover object-top dark:border-white/15"
                   />
                   <p className="text-xs text-[rgb(var(--text-muted))]">
