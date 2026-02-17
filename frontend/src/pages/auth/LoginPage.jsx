@@ -54,7 +54,7 @@ export default function LoginPage() {
             <img
               src="/logo.png"
               alt="Hormuud University SRC logo"
-              className="h-20 w-20 rounded-xl bg-white/90 p-2 object-contain"
+              className="h-28 w-28 rounded-2xl bg-white/90 p-3 object-contain xl:h-32 xl:w-32"
             />
             <h1 className="mt-10 font-display text-4xl font-bold leading-tight">
               Alumni Management System
@@ -67,11 +67,11 @@ export default function LoginPage() {
         </Card>
 
         <Card className="p-6 sm:p-8">
-          <div className="mb-6 flex items-center gap-3 lg:hidden">
+          <div className="mb-6 flex items-center gap-4 lg:hidden">
             <img
               src="/logo.png"
               alt="Hormuud University SRC logo"
-              className="h-16 w-16 rounded-xl bg-white p-1.5 object-contain"
+              className="h-20 w-20 shrink-0 rounded-2xl bg-white p-2 object-contain sm:h-24 sm:w-24"
             />
             <div>
               <h2 className="font-display text-xl font-bold">Alumni Admin Login</h2>
