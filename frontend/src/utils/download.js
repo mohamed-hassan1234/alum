@@ -1,0 +1,18 @@
+export function saveBlob(blob, filename) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+export function readFilenameFromHeaders(headers, fallback) {
+  const raw = headers?.['content-disposition'] || headers?.['Content-Disposition']
+  if (!raw) return fallback
+  const match = raw.match(/filename="?([^"]+)"?/)
+  return match?.[1] || fallback
+}
+
