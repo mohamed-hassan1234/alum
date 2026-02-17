@@ -26,7 +26,7 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
-    defaultValues: { email: 'admin@alumni.local', password: 'Admin@123' },
+    defaultValues: { email: '', password: '' },
   })
 
   async function onSubmit(values) {
@@ -54,7 +54,7 @@ export default function LoginPage() {
             <img
               src="/logo.png"
               alt="Hormuud University SRC logo"
-              className="h-16 w-16 rounded-xl bg-white/90 p-1.5 object-contain"
+              className="h-20 w-20 rounded-xl bg-white/90 p-2 object-contain"
             />
             <h1 className="mt-10 font-display text-4xl font-bold leading-tight">
               Alumni Management System
@@ -63,16 +63,6 @@ export default function LoginPage() {
               Track graduates, manage academic records, and analyze employment outcomes in one
               admin platform.
             </p>
-            <div className="mt-10 grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-white/20 p-3">
-                <div className="text-xs uppercase tracking-wide text-white/80">Modules</div>
-                <div className="mt-1 text-lg font-semibold">12+</div>
-              </div>
-              <div className="rounded-xl bg-white/20 p-3">
-                <div className="text-xs uppercase tracking-wide text-white/80">Security</div>
-                <div className="mt-1 text-lg font-semibold">JWT Auth</div>
-              </div>
-            </div>
           </div>
         </Card>
 
@@ -81,7 +71,7 @@ export default function LoginPage() {
             <img
               src="/logo.png"
               alt="Hormuud University SRC logo"
-              className="h-12 w-12 rounded-xl bg-white p-1 object-contain"
+              className="h-16 w-16 rounded-xl bg-white p-1.5 object-contain"
             />
             <div>
               <h2 className="font-display text-xl font-bold">Alumni Admin Login</h2>

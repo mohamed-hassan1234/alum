@@ -64,7 +64,7 @@ export default function RegisterPage() {
             <img
               src="/logo.png"
               alt="Hormuud University SRC logo"
-              className="h-16 w-16 rounded-xl bg-white/90 p-1.5 object-contain"
+              className="h-20 w-20 rounded-xl bg-white/90 p-2 object-contain"
             />
             <h1 className="mt-10 font-display text-4xl font-bold leading-tight">
               Alumni Management System
@@ -73,16 +73,6 @@ export default function RegisterPage() {
               Create an admin account, then manage students, analytics, reports, and system
               settings.
             </p>
-            <div className="mt-10 grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-white/20 p-3">
-                <div className="text-xs uppercase tracking-wide text-white/80">Setup</div>
-                <div className="mt-1 text-lg font-semibold">Quick Start</div>
-              </div>
-              <div className="rounded-xl bg-white/20 p-3">
-                <div className="text-xs uppercase tracking-wide text-white/80">Security</div>
-                <div className="mt-1 text-lg font-semibold">JWT Auth</div>
-              </div>
-            </div>
           </div>
         </Card>
 
@@ -91,7 +81,7 @@ export default function RegisterPage() {
             <img
               src="/logo.png"
               alt="Hormuud University SRC logo"
-              className="h-12 w-12 rounded-xl bg-white p-1 object-contain"
+              className="h-16 w-16 rounded-xl bg-white p-1.5 object-contain"
             />
             <div>
               <h2 className="font-display text-xl font-bold">Alumni Admin Registration</h2>

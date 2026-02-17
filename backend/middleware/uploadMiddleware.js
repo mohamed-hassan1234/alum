@@ -88,9 +88,7 @@ function uploadStudentPhoto(req, res, next) {
 }
 
 function uploadAdminPhoto(req, res, next) {
-  const provider = (process.env.UPLOAD_PROVIDER || 'local').toLowerCase();
-  const uploader = provider === 'cloudinary' ? uploadMemory : uploadAdminLocal;
-  return uploader.single('photo')(req, res, next);
+  return uploadAdminLocal.single('photo')(req, res, next);
 }
 
 function uploadStudentImportFile(req, res, next) {

@@ -186,9 +186,9 @@ export default function SettingsPage() {
         subtitle="Update admin profile, security, preferences, and backup data."
       />
 
-      <div className="grid items-start gap-4 xl:grid-cols-2">
-        <Card className="p-5">
-          <div className="flex items-start justify-between gap-3">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <Card className="p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               <img
                 src={profileAvatar}
@@ -207,7 +207,11 @@ export default function SettingsPage() {
               </div>
             </div>
             {!editingProfile ? (
-              <Button variant="ghost" onClick={() => setEditingProfile(true)}>
+              <Button
+                variant="ghost"
+                className="w-full sm:w-auto"
+                onClick={() => setEditingProfile(true)}
+              >
                 <MaterialIcon name="edit" />
                 Edit Personal Data
               </Button>
@@ -257,10 +261,10 @@ export default function SettingsPage() {
                 </div>
               </label>
               <div className="flex flex-wrap justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={resetProfileEditor}>
+                <Button type="button" variant="ghost" className="w-full sm:w-auto" onClick={resetProfileEditor}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={profileMut.isPending}>
+                <Button type="submit" className="w-full sm:w-auto" disabled={profileMut.isPending}>
                   <MaterialIcon name={profileMut.isPending ? 'sync' : 'save'} className={profileMut.isPending ? 'animate-spin' : undefined} />
                   {profileMut.isPending ? 'Saving...' : 'Save Profile'}
                 </Button>
@@ -269,8 +273,8 @@ export default function SettingsPage() {
           ) : null}
         </Card>
 
-        <Card className="p-5">
-          <div className="flex items-start justify-between gap-3">
+        <Card className="p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h3 className="font-display text-lg font-semibold">Password & Security</h3>
               <p className="mt-1 text-sm text-[rgb(var(--text-muted))]">
@@ -278,7 +282,11 @@ export default function SettingsPage() {
               </p>
             </div>
             {!editingPassword ? (
-              <Button variant="ghost" onClick={() => setEditingPassword(true)}>
+              <Button
+                variant="ghost"
+                className="w-full sm:w-auto"
+                onClick={() => setEditingPassword(true)}
+              >
                 <MaterialIcon name="lock_reset" />
                 Edit Password
               </Button>
@@ -309,6 +317,7 @@ export default function SettingsPage() {
                 <Button
                   type="button"
                   variant="ghost"
+                  className="w-full sm:w-auto"
                   onClick={() => {
                     setPassword({ currentPassword: '', newPassword: '', confirmPassword: '' })
                     setEditingPassword(false)
@@ -316,7 +325,7 @@ export default function SettingsPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={passwordMut.isPending}>
+                <Button type="submit" className="w-full sm:w-auto" disabled={passwordMut.isPending}>
                   <MaterialIcon name={passwordMut.isPending ? 'sync' : 'lock'} className={passwordMut.isPending ? 'animate-spin' : undefined} />
                   {passwordMut.isPending ? 'Updating...' : 'Update Password'}
                 </Button>
@@ -326,8 +335,8 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="p-5">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="p-4 sm:p-5">
           <h3 className="font-display text-lg font-semibold">System Preferences</h3>
           <div className="mt-4 space-y-4 text-sm">
             <label className="flex items-center gap-2">
@@ -354,21 +363,21 @@ export default function SettingsPage() {
                 ))}
               </select>
             </label>
-            <Button variant="secondary" onClick={savePreferences}>
+            <Button variant="secondary" className="w-full sm:w-auto" onClick={savePreferences}>
               <MaterialIcon name="save" />
               Save Preferences
             </Button>
           </div>
         </Card>
 
-        <Card className="p-5">
+        <Card className="p-4 sm:p-5">
           <h3 className="font-display text-lg font-semibold">Backup Data</h3>
           <p className="mt-3 text-sm text-[rgb(var(--text-muted))]">
             Download a complete JSON backup of admins, faculties, departments, classes, batches,
             jobs, and active students.
           </p>
           <div className="mt-5">
-            <Button variant="secondary" onClick={downloadBackup}>
+            <Button variant="secondary" className="w-full sm:w-auto" onClick={downloadBackup}>
               <MaterialIcon name="download" />
               Download Backup
             </Button>
