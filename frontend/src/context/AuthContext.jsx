@@ -59,6 +59,21 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function register({ name, email, password }) {
+    try {
+      const res = await api.post('/auth/register', { name, email, password })
+      const nextToken = res.data.token
+      localStorage.setItem(TOKEN_KEY, nextToken)
+      setToken(nextToken)
+      setAdmin(res.data.admin)
+      toast.success('Admin registered and logged in')
+      return true
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+      return false
+    }
+  }
+
   function logout() {
     localStorage.removeItem(TOKEN_KEY)
     setToken('')
@@ -77,6 +92,7 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(token),
       loading,
       login,
+      register,
       logout,
       setAdminData,
     }

@@ -35,6 +35,7 @@ async function del(path) {
 }
 
 export const alumniService = {
+  register: (payload) => post('/auth/register', payload),
   login: (payload) => post('/auth/login', payload),
   me: () => get('/auth/me'),
 

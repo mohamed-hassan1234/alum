@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './components/layouts/ProtectedRoute'
 import AdminLayout from './components/layouts/AdminLayout'
 import LoginPage from './pages/auth/LoginPage'
+import RegisterPage from './pages/auth/RegisterPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import FacultyPage from './pages/management/FacultyPage'
 import DepartmentPage from './pages/management/DepartmentPage'
@@ -23,10 +24,18 @@ function LoginRoute() {
   return <LoginPage />
 }
 
+function RegisterRoute() {
+  const { isAuthenticated, loading } = useAuth()
+  if (loading) return null
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />
+  return <RegisterPage />
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginRoute />} />
+      <Route path="/register" element={<RegisterRoute />} />
 
       <Route
         path="/"

@@ -36,7 +36,20 @@ function randomUpdatedAt(createdAt, year) {
   return new Date(timestamp);
 }
 
+function parsePositiveInt(value, fallbackValue) {
+  const parsed = Number.parseInt(String(value || ''), 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return fallbackValue;
+  return parsed;
+}
+
 async function run() {
+  const seedAdminName = String(process.env.SEED_ADMIN_NAME || 'System Admin').trim() || 'System Admin';
+  const seedAdminEmail = String(process.env.SEED_ADMIN_EMAIL || 'admin@alumni.local')
+    .trim()
+    .toLowerCase();
+  const seedAdminPassword = String(process.env.SEED_ADMIN_PASSWORD || 'Admin@123');
+  const seedStudentCount = parsePositiveInt(process.env.SEED_STUDENT_COUNT, 50);
+
   await connectDB();
 
   await Promise.all([
@@ -49,10 +62,10 @@ async function run() {
     Student.deleteMany({}),
   ]);
 
-  const admin = await Admin.create({
-    name: 'System Admin',
-    email: 'admin@alumni.local',
-    password: 'Admin@123',
+  await Admin.create({
+    name: seedAdminName,
+    email: seedAdminEmail,
+    password: seedAdminPassword,
   });
 
   const [engineering, science, business] = await Faculty.create(
@@ -129,7 +142,7 @@ async function run() {
   ];
 
   const studentDocs = [];
-  for (let i = 0; i < 50; i += 1) {
+  for (let i = 0; i < seedStudentCount; i += 1) {
     const name = faker.person.fullName();
     const gender = pickWeighted(genderWeights);
     const employed = Math.random() < 0.7;
@@ -165,11 +178,13 @@ async function run() {
   // eslint-disable-next-line no-console
   console.log('Seed complete.');
   // eslint-disable-next-line no-console
+  console.log(`Students created: ${seedStudentCount}`);
+  // eslint-disable-next-line no-console
   console.log('Admin login:');
   // eslint-disable-next-line no-console
-  console.log('  Email: admin@alumni.local');
+  console.log(`  Email: ${seedAdminEmail}`);
   // eslint-disable-next-line no-console
-  console.log('  Password: Admin@123');
+  console.log(`  Password: ${seedAdminPassword}`);
 
   process.exit(0);
 }
