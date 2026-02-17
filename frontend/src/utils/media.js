@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../services/api'
 
 const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/i, '')
+const ADMIN_PHOTO_CACHE_KEY = 'ams_admin_photo_cache_v1'
 
 function isLocalHost(hostname) {
   const h = String(hostname || '').toLowerCase()
@@ -23,6 +24,25 @@ function normalizeUploadsPath(pathname) {
   if (lower.startsWith('/uploads/')) return `/api${clean}`
   if (lower.startsWith('uploads/')) return `/api/${clean}`
   return clean
+}
+
+function readAdminPhotoCache() {
+  try {
+    const raw = localStorage.getItem(ADMIN_PHOTO_CACHE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function writeAdminPhotoCache(nextCache) {
+  try {
+    localStorage.setItem(ADMIN_PHOTO_CACHE_KEY, JSON.stringify(nextCache || {}))
+  } catch {
+    // Ignore quota/storage errors.
+  }
 }
 
 function escapeXml(value) {
@@ -55,6 +75,32 @@ export function initialsAvatar(name = 'Admin') {
     </svg>
   `
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+export function getCachedAdminPhoto(adminId) {
+  const key = String(adminId || '').trim()
+  if (!key) return ''
+  const cache = readAdminPhotoCache()
+  const value = cache[key]
+  return typeof value === 'string' ? value : ''
+}
+
+export function setCachedAdminPhoto(adminId, photoUrl) {
+  const key = String(adminId || '').trim()
+  const value = String(photoUrl || '').trim()
+  if (!key || !value) return
+  const cache = readAdminPhotoCache()
+  cache[key] = value
+  writeAdminPhotoCache(cache)
+}
+
+export function clearCachedAdminPhoto(adminId) {
+  const key = String(adminId || '').trim()
+  if (!key) return
+  const cache = readAdminPhotoCache()
+  if (!(key in cache)) return
+  delete cache[key]
+  writeAdminPhotoCache(cache)
 }
 
 export function resolveMediaUrl(value) {

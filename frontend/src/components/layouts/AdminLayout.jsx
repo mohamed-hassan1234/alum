@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import Button from '../common/Button'
 import MaterialIcon from '../common/MaterialIcon'
-import { initialsAvatar, resolveMediaUrl } from '../../utils/media'
+import { getCachedAdminPhoto, initialsAvatar, resolveMediaUrl } from '../../utils/media'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -110,10 +110,17 @@ export default function AdminLayout() {
   const sectionHeading = formatRouteHeading(location.pathname)
   const adminName = String(admin?.name || 'Admin').trim() || 'Admin'
   const adminFirstName = adminName.split(/\s+/)[0] || 'Admin'
+  const cachedAvatar = getCachedAdminPhoto(admin?._id)
   const fallbackAvatar = initialsAvatar(adminName)
-  const adminAvatar = resolveMediaUrl(admin?.photoImage) || fallbackAvatar
+  const adminAvatar = resolveMediaUrl(cachedAvatar) || resolveMediaUrl(admin?.photoImage) || fallbackAvatar
 
   function handleAvatarError(e) {
+    const currentSrc = String(e.currentTarget.src || '')
+    const cachedSrc = resolveMediaUrl(cachedAvatar)
+    if (cachedSrc && currentSrc !== cachedSrc) {
+      e.currentTarget.src = cachedSrc
+      return
+    }
     e.currentTarget.onerror = null
     e.currentTarget.src = fallbackAvatar
   }

@@ -10,7 +10,13 @@ import { useAuth } from '../../context/AuthContext'
 import { alumniService } from '../../services/alumniService'
 import { getErrorMessage } from '../../utils/http'
 import { readFilenameFromHeaders, saveBlob } from '../../utils/download'
-import { initialsAvatar, resolveMediaUrl } from '../../utils/media'
+import {
+  clearCachedAdminPhoto,
+  getCachedAdminPhoto,
+  initialsAvatar,
+  resolveMediaUrl,
+  setCachedAdminPhoto,
+} from '../../utils/media'
 
 const PREFERENCES_KEY = 'ams_preferences'
 const MAX_PROFILE_UPLOAD_BYTES = 900 * 1024
@@ -156,6 +162,11 @@ export default function SettingsPage() {
           resolveMediaUrl(admin?.photoImage) ||
           '',
       }
+      if (mergedAdmin._id) {
+        const mergedPhoto = String(mergedAdmin.photoImage || '').trim()
+        if (mergedPhoto) setCachedAdminPhoto(mergedAdmin._id, mergedPhoto)
+        else clearCachedAdminPhoto(mergedAdmin._id)
+      }
       setAdminData(mergedAdmin)
       setProfile((prev) => ({
         ...prev,
@@ -272,9 +283,20 @@ export default function SettingsPage() {
   }
 
   const fallbackAvatar = initialsAvatar(admin?.name || 'Admin')
-  const profileAvatar = resolveMediaUrl(profile.photoPreview || admin?.photoImage) || fallbackAvatar
+  const cachedAvatar = getCachedAdminPhoto(admin?._id)
+  const profileAvatar =
+    resolveMediaUrl(profile.photoPreview) ||
+    resolveMediaUrl(cachedAvatar) ||
+    resolveMediaUrl(admin?.photoImage) ||
+    fallbackAvatar
 
   function handleAvatarError(e) {
+    const currentSrc = String(e.currentTarget.src || '')
+    const cachedSrc = resolveMediaUrl(cachedAvatar)
+    if (cachedSrc && currentSrc !== cachedSrc) {
+      e.currentTarget.src = cachedSrc
+      return
+    }
     e.currentTarget.onerror = null
     e.currentTarget.src = fallbackAvatar
   }
