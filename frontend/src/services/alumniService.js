@@ -99,9 +99,8 @@ export const alumniService = {
 
   updateAdminProfile: (payload) => {
     if (payload?.photo && (payload.photo instanceof File || payload.photo instanceof Blob)) {
-      return put('/admin/me', toFormData(payload), {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      // Let the browser set multipart boundaries automatically.
+      return put('/admin/me', toFormData(payload))
     }
     return put('/admin/me', payload)
   },

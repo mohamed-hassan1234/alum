@@ -2,6 +2,19 @@ import { API_BASE_URL } from '../services/api'
 
 const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/i, '')
 
+function isLocalHost(hostname) {
+  const h = String(hostname || '').toLowerCase()
+  return h === 'localhost' || h === '127.0.0.1'
+}
+
+function toOriginSafe(url) {
+  try {
+    return new URL(url)
+  } catch {
+    return null
+  }
+}
+
 function escapeXml(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -38,8 +51,24 @@ export function resolveMediaUrl(value) {
   const raw = String(value || '').trim()
   if (!raw) return ''
 
-  if (/^(https?:)?\/\//i.test(raw)) return raw
   if (/^(data:image\/|blob:)/i.test(raw)) return raw
+
+  if (/^(https?:)?\/\//i.test(raw)) {
+    const parsed = toOriginSafe(raw.startsWith('//') ? `https:${raw}` : raw)
+    const apiParsed = toOriginSafe(API_ORIGIN)
+    if (!parsed || !apiParsed) return raw
+
+    const uploadsIndex = parsed.pathname.toLowerCase().indexOf('/uploads/')
+    if (uploadsIndex >= 0) {
+      const differentHost = parsed.host.toLowerCase() !== apiParsed.host.toLowerCase()
+      const shouldRewrite = differentHost && isLocalHost(parsed.hostname)
+      if (shouldRewrite) {
+        return `${apiParsed.origin}${parsed.pathname}${parsed.search || ''}`
+      }
+    }
+
+    return parsed.href
+  }
 
   const normalized = raw.replace(/\\/g, '/')
   const lower = normalized.toLowerCase()

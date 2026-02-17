@@ -52,8 +52,15 @@ export default function SettingsPage() {
 
   const profileMut = useMutation({
     mutationFn: alumniService.updateAdminProfile,
-    onSuccess: (payload) => {
-      const nextAdmin = payload?.admin || {}
+    onSuccess: async (payload) => {
+      let nextAdmin = payload?.admin || {}
+      try {
+        const fresh = await alumniService.me()
+        if (fresh?.admin) nextAdmin = fresh.admin
+      } catch {
+        // Keep payload data if /auth/me refresh fails.
+      }
+
       const mergedAdmin = {
         _id: admin?._id,
         name: nextAdmin.name || profile.name.trim(),
