@@ -100,6 +100,8 @@ export const alumniService = {
     }),
   deleteStudent: (id, force = false) => del(`/students/${id}${force ? '?force=true' : ''}`),
   deleteAllStudents: (force = false) => del(`/students/all${force ? '?force=true' : ''}`),
+  deleteStudentsByFilter: ({ facultyIds = [], departmentIds = [], classIds = [], force = false }) =>
+    post('/students/delete-filtered', { facultyIds, departmentIds, classIds, force }),
   restoreStudent: (id) => post(`/students/${id}/restore`, {}),
 
   updateAdminProfile: (payload) => {

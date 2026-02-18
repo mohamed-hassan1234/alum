@@ -425,6 +425,52 @@ const deleteAllStudents = asyncHandler(async (req, res) => {
   });
 });
 
+const deleteStudentsByFilter = asyncHandler(async (req, res) => {
+  const facultyIdsRaw = parseArrayParam(req.body?.facultyIds || req.query.facultyIds);
+  const departmentIdsRaw = parseArrayParam(req.body?.departmentIds || req.query.departmentIds);
+  const classIdsRaw = parseArrayParam(req.body?.classIds || req.query.classIds);
+  const force = parseBooleanParam(req.body?.force ?? req.query.force, false);
+
+  const classFilterRequested =
+    facultyIdsRaw.length > 0 || departmentIdsRaw.length > 0 || classIdsRaw.length > 0;
+
+  if (!classFilterRequested) {
+    return res.status(400).json({
+      message: 'Select at least one faculty, department, or class filter before delete',
+    });
+  }
+
+  const facultyIds = toObjectIds(facultyIdsRaw);
+  const departmentIds = toObjectIds(departmentIdsRaw);
+  const classIds = toObjectIds(classIdsRaw);
+
+  const resolvedClassIds = await resolveClassIds({ facultyIds, departmentIds, classIds });
+  if (!resolvedClassIds.length) {
+    return res.json({
+      message: 'No students matched selected class filters',
+      affected: 0,
+    });
+  }
+
+  if (force) {
+    const result = await Student.deleteMany({ classId: { $in: resolvedClassIds } });
+    return res.json({
+      message: 'Filtered students deleted permanently',
+      affected: result.deletedCount || 0,
+    });
+  }
+
+  const result = await Student.updateMany(
+    { classId: { $in: resolvedClassIds }, isDeleted: false },
+    { $set: { isDeleted: true, deletedAt: new Date() } }
+  );
+
+  return res.json({
+    message: 'Filtered students deleted',
+    affected: result.modifiedCount || 0,
+  });
+});
+
 const restoreStudent = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
@@ -727,6 +773,7 @@ module.exports = {
   updateStudent,
   deleteStudent,
   deleteAllStudents,
+  deleteStudentsByFilter,
   restoreStudent,
   getStudentFilters,
   downloadStudentImportTemplate,

@@ -7,6 +7,7 @@ const {
   updateStudent,
   deleteStudent,
   deleteAllStudents,
+  deleteStudentsByFilter,
   restoreStudent,
   getStudentFilters,
   downloadStudentImportTemplate,
@@ -24,6 +25,7 @@ router.get('/', listStudents);
 router.get('/filters', getStudentFilters);
 router.get('/import-template', downloadStudentImportTemplate);
 router.delete('/all', deleteAllStudents);
+router.post('/delete-filtered', deleteStudentsByFilter);
 router.post(
   '/import',
   uploadStudentImportFile,
@@ -50,7 +52,10 @@ router.post(
       .optional()
       .isIn(['Male', 'Female'])
       .withMessage('Gender must be Male or Female'),
-    body('email').optional().isEmail().withMessage('Valid email is required'),
+    body('email')
+      .optional({ checkFalsy: true })
+      .isEmail()
+      .withMessage('Valid email is required'),
     body('classId').isString().trim().notEmpty().withMessage('classId is required'),
     body('batchId').isString().trim().notEmpty().withMessage('batchId is required'),
     body('jobId').optional().isString(),
@@ -72,7 +77,10 @@ router.put(
       .optional()
       .isIn(['Male', 'Female'])
       .withMessage('Gender must be Male or Female'),
-    body('email').optional().isEmail().withMessage('Valid email is required'),
+    body('email')
+      .optional({ checkFalsy: true })
+      .isEmail()
+      .withMessage('Valid email is required'),
     body('classId').optional().isString(),
     body('batchId').optional().isString(),
     body('jobId').optional().isString(),

@@ -2,11 +2,6 @@ const Admin = require('../models/Admin');
 const asyncHandler = require('../utils/asyncHandler');
 const uploadBufferToCloudinary = require('../utils/uploadToCloudinary');
 
-function buildAdminPhotoUrl(req) {
-  if (!req.file) return '';
-  return `/api/uploads/admins/${req.file.filename}`;
-}
-
 const getMe = asyncHandler(async (req, res) => {
   return res.json({ admin: req.admin });
 });
@@ -35,7 +30,9 @@ const updateMe = asyncHandler(async (req, res) => {
       });
       admin.photoImage = result.secure_url || '';
     } else {
-      admin.photoImage = buildAdminPhotoUrl(req);
+      const mime = String(req.file.mimetype || 'image/jpeg').toLowerCase();
+      const base64 = req.file.buffer.toString('base64');
+      admin.photoImage = `data:${mime};base64,${base64}`;
     }
   }
 

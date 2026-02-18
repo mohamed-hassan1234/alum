@@ -21,7 +21,7 @@ const adminSchema = new mongoose.Schema(
       type: String,
       default: '',
       trim: true,
-      maxlength: 1200,
+      maxlength: 3_000_000,
     },
     password: {
       type: String,

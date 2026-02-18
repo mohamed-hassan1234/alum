@@ -59,6 +59,7 @@ export default function StudentsPage() {
   const [importForm, setImportForm] = useState(initialImportForm)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleteAllOpen, setDeleteAllOpen] = useState(false)
+  const [deleteFilteredOpen, setDeleteFilteredOpen] = useState(false)
   const debouncedSearch = useDebounce(filters.search, 400)
 
   function setFilter(key, value) {
@@ -141,6 +142,29 @@ export default function StudentsPage() {
           : `Soft deleted ${affected} active students`
       )
       setDeleteAllOpen(false)
+      qc.invalidateQueries({ queryKey: ['students'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['analytics'] })
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  })
+
+  const deleteFilteredMut = useMutation({
+    mutationFn: ({ force }) =>
+      alumniService.deleteStudentsByFilter({
+        facultyIds: filters.facultyIds,
+        departmentIds: filters.departmentIds,
+        classIds: filters.classIds,
+        force,
+      }),
+    onSuccess: (payload, variables) => {
+      const affected = Number(payload?.affected || 0)
+      toast.success(
+        variables.force
+          ? `Deleted ${affected} filtered students permanently`
+          : `Soft deleted ${affected} filtered students`
+      )
+      setDeleteFilteredOpen(false)
       qc.invalidateQueries({ queryKey: ['students'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       qc.invalidateQueries({ queryKey: ['analytics'] })
@@ -356,6 +380,8 @@ export default function StudentsPage() {
         }]
       : []),
   ]
+  const hasClassFilterForDelete =
+    filters.classIds.length > 0 || filters.departmentIds.length > 0 || filters.facultyIds.length > 0
 
   return (
     <div className="space-y-6">
@@ -403,6 +429,21 @@ export default function StudentsPage() {
             >
               <MaterialIcon name="delete_sweep" />
               Delete All
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (!hasClassFilterForDelete) {
+                  toast.error('Select faculty/department/class filter first')
+                  return
+                }
+                setDeleteFilteredOpen(true)
+              }}
+              title="Delete students by selected class filters"
+              aria-label="Delete students by selected class filters"
+            >
+              <MaterialIcon name="filter_alt_off" />
+              Delete Filtered
             </Button>
             <Button onClick={() => { setEditing(null); setFormOpen(true) }}>
               <MaterialIcon name="add" />
@@ -616,6 +657,40 @@ export default function StudentsPage() {
             </div>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={deleteFilteredOpen}
+        onClose={() => setDeleteFilteredOpen(false)}
+        title="Delete Filtered Students"
+        description="Deletes students that match your selected faculty/department/class filters."
+      >
+        <p className="text-sm text-[rgb(var(--text-muted))]">
+          Matching classes: <span className="font-semibold text-[rgb(var(--text))]">{filters.classIds.length || 0}</span>
+        </p>
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <Button variant="ghost" onClick={() => setDeleteFilteredOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => deleteFilteredMut.mutate({ force: false })}
+            disabled={deleteFilteredMut.isPending}
+            title="Soft delete filtered students"
+            aria-label="Soft delete filtered students"
+          >
+            <MaterialIcon name={deleteFilteredMut.isPending ? 'sync' : 'delete_outline'} className={deleteFilteredMut.isPending ? 'animate-spin' : undefined} />
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => deleteFilteredMut.mutate({ force: true })}
+            disabled={deleteFilteredMut.isPending}
+            title="Permanently delete filtered students"
+            aria-label="Permanently delete filtered students"
+          >
+            <MaterialIcon name={deleteFilteredMut.isPending ? 'sync' : 'delete_forever'} className={deleteFilteredMut.isPending ? 'animate-spin' : undefined} />
+          </Button>
+        </div>
       </Modal>
 
       <Modal
