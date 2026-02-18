@@ -1,5 +1,6 @@
 const Admin = require('../models/Admin');
 const asyncHandler = require('../utils/asyncHandler');
+const uploadBufferToCloudinary = require('../utils/uploadToCloudinary');
 
 function buildAdminPhotoUrl(req) {
   if (!req.file) return '';
@@ -25,7 +26,17 @@ const updateMe = asyncHandler(async (req, res) => {
   if (name) admin.name = String(name).trim();
 
   if (req.file) {
-    admin.photoImage = buildAdminPhotoUrl(req);
+    const provider = (process.env.UPLOAD_PROVIDER || 'local').toLowerCase();
+    if (provider === 'cloudinary') {
+      const folder = process.env.CLOUDINARY_FOLDER || 'alumni-management';
+      const result = await uploadBufferToCloudinary(req.file.buffer, {
+        folder,
+        resource_type: 'image',
+      });
+      admin.photoImage = result.secure_url || '';
+    } else {
+      admin.photoImage = buildAdminPhotoUrl(req);
+    }
   }
 
   await admin.save();

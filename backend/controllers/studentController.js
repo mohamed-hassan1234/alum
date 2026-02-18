@@ -403,6 +403,28 @@ const deleteStudent = asyncHandler(async (req, res) => {
   return res.json({ message: 'Student deleted' });
 });
 
+const deleteAllStudents = asyncHandler(async (req, res) => {
+  const force = parseBooleanParam(req.query.force, false);
+
+  if (force) {
+    const result = await Student.deleteMany({});
+    return res.json({
+      message: 'All students deleted permanently',
+      affected: result.deletedCount || 0,
+    });
+  }
+
+  const result = await Student.updateMany(
+    { isDeleted: false },
+    { $set: { isDeleted: true, deletedAt: new Date() } }
+  );
+
+  return res.json({
+    message: 'All active students deleted',
+    affected: result.modifiedCount || 0,
+  });
+});
+
 const restoreStudent = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
@@ -704,6 +726,7 @@ module.exports = {
   createStudent,
   updateStudent,
   deleteStudent,
+  deleteAllStudents,
   restoreStudent,
   getStudentFilters,
   downloadStudentImportTemplate,

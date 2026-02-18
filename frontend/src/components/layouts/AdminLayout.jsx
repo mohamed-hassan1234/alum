@@ -112,7 +112,7 @@ export default function AdminLayout() {
   const adminFirstName = adminName.split(/\s+/)[0] || 'Admin'
   const cachedAvatar = getCachedAdminPhoto(admin?._id)
   const fallbackAvatar = initialsAvatar(adminName)
-  const adminAvatar = resolveMediaUrl(cachedAvatar) || resolveMediaUrl(admin?.photoImage) || fallbackAvatar
+  const adminAvatar = resolveMediaUrl(admin?.photoImage) || resolveMediaUrl(cachedAvatar) || fallbackAvatar
 
   function handleAvatarError(e) {
     const currentSrc = String(e.currentTarget.src || '')

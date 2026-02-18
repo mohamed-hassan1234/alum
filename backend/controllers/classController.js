@@ -12,14 +12,25 @@ const getClasses = asyncHandler(async (req, res) => {
     if (!mongoose.isValidObjectId(departmentId)) {
       return res.status(400).json({ message: 'Invalid departmentId' });
     }
-    filter.departmentId = departmentId;
   }
 
   if (facultyId) {
     if (!mongoose.isValidObjectId(facultyId)) {
       return res.status(400).json({ message: 'Invalid facultyId' });
     }
+  }
 
+  if (departmentId && facultyId) {
+    const selectedDepartment = await Department.findOne({ _id: departmentId, facultyId })
+      .select('_id')
+      .lean();
+    if (!selectedDepartment) {
+      return res.json({ data: [] });
+    }
+    filter.departmentId = selectedDepartment._id;
+  } else if (departmentId) {
+    filter.departmentId = departmentId;
+  } else if (facultyId) {
     const departments = await Department.find({ facultyId }).select('_id').lean();
     filter.departmentId = { $in: departments.map((d) => d._id) };
   }

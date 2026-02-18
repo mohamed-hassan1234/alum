@@ -99,7 +99,20 @@ export default function ClassPage() {
 
   const faculties = facultiesQ.data?.data || []
   const departments = departmentsQ.data?.data || []
-  const rows = classesQ.data?.data || []
+  const rawRows = classesQ.data?.data
+  const rows = useMemo(() => {
+    const list = Array.isArray(rawRows) ? rawRows : []
+    return list.filter((item) => {
+      const rowDepartmentId = String(item?.departmentId?._id || item?.departmentId || '')
+      const rowFacultyId = String(
+        item?.departmentId?.facultyId?._id || item?.departmentId?.facultyId || ''
+      )
+
+      if (selectedDepartment && rowDepartmentId !== String(selectedDepartment)) return false
+      if (selectedFaculty && rowFacultyId !== String(selectedFaculty)) return false
+      return true
+    })
+  }, [rawRows, selectedDepartment, selectedFaculty])
   const miniData = dashboardQ.data?.data?.mini?.classSizes || []
   const previewData = miniData.slice(0, 10)
   const fullChartHeight = Math.max(360, miniData.length * 42)

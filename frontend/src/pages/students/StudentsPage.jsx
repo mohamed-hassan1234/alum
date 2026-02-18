@@ -58,6 +58,7 @@ export default function StudentsPage() {
   const [importOpen, setImportOpen] = useState(false)
   const [importForm, setImportForm] = useState(initialImportForm)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteAllOpen, setDeleteAllOpen] = useState(false)
   const debouncedSearch = useDebounce(filters.search, 400)
 
   function setFilter(key, value) {
@@ -123,6 +124,23 @@ export default function StudentsPage() {
     onSuccess: (_, variables) => {
       toast.success(variables.force ? 'Student deleted permanently' : 'Student deleted')
       setDeleteTarget(null)
+      qc.invalidateQueries({ queryKey: ['students'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['analytics'] })
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  })
+
+  const deleteAllMut = useMutation({
+    mutationFn: ({ force }) => alumniService.deleteAllStudents(force),
+    onSuccess: (payload, variables) => {
+      const affected = Number(payload?.affected || 0)
+      toast.success(
+        variables.force
+          ? `Deleted ${affected} students permanently`
+          : `Soft deleted ${affected} active students`
+      )
+      setDeleteAllOpen(false)
       qc.invalidateQueries({ queryKey: ['students'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       qc.invalidateQueries({ queryKey: ['analytics'] })
@@ -377,6 +395,15 @@ export default function StudentsPage() {
               <MaterialIcon name="upload_file" />
               Import Students
             </Button>
+            <Button
+              variant="danger"
+              onClick={() => setDeleteAllOpen(true)}
+              title="Delete all students"
+              aria-label="Delete all students"
+            >
+              <MaterialIcon name="delete_sweep" />
+              Delete All
+            </Button>
             <Button onClick={() => { setEditing(null); setFormOpen(true) }}>
               <MaterialIcon name="add" />
               Add Student
@@ -589,6 +616,40 @@ export default function StudentsPage() {
             </div>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={deleteAllOpen}
+        onClose={() => setDeleteAllOpen(false)}
+        title="Delete All Students"
+        description="Choose soft delete or permanent delete for all student records."
+      >
+        <p className="text-sm text-[rgb(var(--text-muted))]">
+          This action affects every student in your database.
+        </p>
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <Button variant="ghost" onClick={() => setDeleteAllOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => deleteAllMut.mutate({ force: false })}
+            disabled={deleteAllMut.isPending}
+            title="Soft delete all students"
+            aria-label="Soft delete all students"
+          >
+            <MaterialIcon name={deleteAllMut.isPending ? 'sync' : 'delete_outline'} className={deleteAllMut.isPending ? 'animate-spin' : undefined} />
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => deleteAllMut.mutate({ force: true })}
+            disabled={deleteAllMut.isPending}
+            title="Permanently delete all students"
+            aria-label="Permanently delete all students"
+          >
+            <MaterialIcon name={deleteAllMut.isPending ? 'sync' : 'delete_forever'} className={deleteAllMut.isPending ? 'animate-spin' : undefined} />
+          </Button>
+        </div>
       </Modal>
 
       <Modal

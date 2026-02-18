@@ -138,17 +138,14 @@ export default function SettingsPage() {
       } catch {
         // Keep payload data if /auth/me refresh fails.
       }
-      const uploadedPreview = profile.photo ? profile.photoPreview : ''
+
+      const persistedPhoto = resolveMediaUrl(nextAdmin.photoImage) || ''
 
       const mergedAdmin = {
         _id: admin?._id,
         name: nextAdmin.name || profile.name.trim(),
         email: nextAdmin.email || profile.email.trim(),
-        photoImage:
-          uploadedPreview ||
-          resolveMediaUrl(nextAdmin.photoImage) ||
-          resolveMediaUrl(admin?.photoImage) ||
-          '',
+        photoImage: persistedPhoto || resolveMediaUrl(admin?.photoImage) || '',
       }
       if (mergedAdmin._id) {
         const mergedPhoto = String(mergedAdmin.photoImage || '').trim()
@@ -269,8 +266,8 @@ export default function SettingsPage() {
   const cachedAvatar = getCachedAdminPhoto(admin?._id)
   const profileAvatar =
     resolveMediaUrl(profile.photoPreview) ||
-    resolveMediaUrl(cachedAvatar) ||
     resolveMediaUrl(admin?.photoImage) ||
+    resolveMediaUrl(cachedAvatar) ||
     fallbackAvatar
 
   function handleAvatarError(e) {

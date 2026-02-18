@@ -9,6 +9,10 @@ function toFormData(payload) {
       fd.append(k, v)
       return
     }
+    if (v instanceof Blob) {
+      fd.append(k, v, 'upload.bin')
+      return
+    }
     fd.append(k, String(v))
   })
   return fd
@@ -95,6 +99,7 @@ export const alumniService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
   deleteStudent: (id, force = false) => del(`/students/${id}${force ? '?force=true' : ''}`),
+  deleteAllStudents: (force = false) => del(`/students/all${force ? '?force=true' : ''}`),
   restoreStudent: (id) => post(`/students/${id}/restore`, {}),
 
   updateAdminProfile: (payload) => {

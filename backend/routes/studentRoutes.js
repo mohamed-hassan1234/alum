@@ -6,6 +6,7 @@ const {
   createStudent,
   updateStudent,
   deleteStudent,
+  deleteAllStudents,
   restoreStudent,
   getStudentFilters,
   downloadStudentImportTemplate,
@@ -22,6 +23,7 @@ router.use(protect);
 router.get('/', listStudents);
 router.get('/filters', getStudentFilters);
 router.get('/import-template', downloadStudentImportTemplate);
+router.delete('/all', deleteAllStudents);
 router.post(
   '/import',
   uploadStudentImportFile,

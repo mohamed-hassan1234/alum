@@ -77,15 +77,17 @@ export default function RegisterPage() {
         </Card>
 
         <Card className="p-6 sm:p-8">
-          <div className="mb-6 flex items-center gap-4 lg:hidden">
+          <div className="mb-8 flex flex-col items-center text-center lg:hidden">
             <img
               src="/logo.png"
               alt="Hormuud University SRC logo"
-              className="h-20 w-20 shrink-0 rounded-2xl bg-white p-2 object-contain sm:h-24 sm:w-24"
+              className="h-auto w-44 max-w-full object-contain sm:w-52"
             />
-            <div>
-              <h2 className="font-display text-xl font-bold">Alumni Admin Registration</h2>
-              <p className="text-xs text-[rgb(var(--text-muted))]">Create account to continue</p>
+            <div className="mt-3">
+              <h2 className="font-display text-3xl font-bold leading-tight">
+                Alumni Admin Registration
+              </h2>
+              <p className="mt-1 text-sm text-[rgb(var(--text-muted))]">Create account to continue</p>
             </div>
           </div>
 

@@ -69,6 +69,12 @@ const uploadAdminLocal = multer({
   limits: { fileSize: MAX_FILE_SIZE_BYTES },
 });
 
+const uploadAdminMemory = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: imageFileFilter,
+  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+});
+
 const uploadMemory = multer({
   storage: multer.memoryStorage(),
   fileFilter: imageFileFilter,
@@ -88,7 +94,9 @@ function uploadStudentPhoto(req, res, next) {
 }
 
 function uploadAdminPhoto(req, res, next) {
-  return uploadAdminLocal.single('photo')(req, res, next);
+  const provider = (process.env.UPLOAD_PROVIDER || 'local').toLowerCase();
+  const uploader = provider === 'cloudinary' ? uploadAdminMemory : uploadAdminLocal;
+  return uploader.single('photo')(req, res, next);
 }
 
 function uploadStudentImportFile(req, res, next) {
